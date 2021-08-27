@@ -1,0 +1,57 @@
+GAME_ADDRESS: https://op2.responsive.net/Littlefield
+GAME_NAME: "sample_game"
+
+nodes:
+  OrdersMenu:
+    parents: ~
+    children:
+      - QueueMenu?id=1
+
+  MaterialMenu:
+    parents: ~
+    children:
+      - QueueMenu?id=1
+
+  QueueMenu?id=1:
+    parents:
+      - OrdersMenu
+      - MaterialMenu
+    children:
+      - QueueMenu?id=1
+
+  StationMenu?id=1:
+    parents:
+      - QueueMenu?id=1
+    children:
+      - QueueMenu?id=2
+
+  QueueMenu?id=2:
+    parents:
+      - StationMenu?id=1
+      - StationMenu?id=3
+    children:
+      - StationMenu?id=2
+
+  StationMenu?id=2:
+    parents:
+      - QueueMenu?id=2
+    children:
+      - QueueMenu?id=3
+      - CompletedMenu
+
+  QueueMenu?id=3:
+    parents:
+      - StationMenu?id=2
+    children:
+      - StationMenu?id=3
+
+  StationMenu?id=3:
+    parents:
+      - QueueMenu?id=3
+    children:
+      - QueueMenu?id=2
+  
+  CompletedMenu:
+    parents:
+      - StationMenu?id=2
+    children: ~
