@@ -1,11 +1,22 @@
 # Littlefield Driver Toolset
 
 A driver, analysis, & automation toolset for the educational simulation game
-[Littlefield](http://responsive.net/littlefield.html)
+[Littlefield](http://responsive.net/littlefield.html).
 
 ## Setup
 
+To use the Littlefield Driver toolset, you'll need to adjust two configurations:
+
+- `configs/secrets.yaml` needs to contain the login link address, along with your Littlefield username and password.
+    * You can find an example of what this file should look like at `configs/secrets.yaml.sample`.
+- `configs/game.yaml` needs to be configured with the state of the game. This includes
+    * The URL address for the game
+    * A name for the game
+    * A list of nodes, such as menus, queues, and stations, along with how these nodes are connected to each other. You can find an example of this layout at `configs/game.yaml.sample`.
+
 ## Documentation
+
+For working code examples, check the `ipynb` directory.
 
 ### LittlefieldDriver
 
@@ -15,7 +26,7 @@ The LittlefieldDriver requires the user to provide their login URL, username, an
 
 #### Functions
 
-- `data`: Retrieves the historical game data.
+- `data()`: Retrieves the historical game data.
 
 ## Planned Features
 
