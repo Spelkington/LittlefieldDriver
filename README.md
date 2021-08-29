@@ -3,6 +3,8 @@
 A driver, analysis, & automation toolset for the educational simulation game
 [Littlefield](http://responsive.net/littlefield.html).
 
+You can view updates about this project on [my personal blog](https://spelkington.github.io/Littlefield/)
+
 ## Setup
 
 To use the Littlefield Driver toolset, you'll need to adjust two configurations:
