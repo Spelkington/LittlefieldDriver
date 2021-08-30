@@ -67,7 +67,9 @@ class LittlefieldDriver:
 
         # Create parent-child connections
         for node_name, relationships in node_list.items():
-            if relationships and "children" in relationships.keys():
+            if (relationships 
+                and "children" in relationships.keys()
+                and not relationships["children"] is None):
                 for child_name in relationships["children"]:
                     graph.add_edge(node_name, child_name)
 
@@ -176,8 +178,11 @@ class LittlefieldNode:
             # as a new column to the dataframe
             if len(data) > 0:
                 data = data[0][2:-2]
-                series = self.parse_page_table(data, addr)
-                df[label] = series
+                series = self.parse_page_table(data, label)
+                if len(df) == 0:
+                    df = series
+                else:
+                    df[label] = series
 
         return df
 
