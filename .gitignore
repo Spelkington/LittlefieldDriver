@@ -1,6 +1,6 @@
 # CUSTOM EXCLUDES
 *secrets.yaml
-*configs/game_*.yaml
+*configs/game*.yaml
 
 # Created by https://www.toptal.com/developers/gitignore/api/jupyternotebooks,python,visualstudiocode,windows,vim
 # Edit at https://www.toptal.com/developers/gitignore?templates=jupyternotebooks,python,visualstudiocode,windows,vim
