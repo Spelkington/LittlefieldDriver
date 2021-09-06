@@ -52,16 +52,22 @@ class LittlefieldDriver:
         graph: nx.DiGraph = nx.DiGraph()
 
         # Add all nodes to graph.
-        for node_name in node_list.keys():
+        for node_name, node_attrs in node_list.items():
+
+            alias = node_name
+            if "alias" in node_attrs.keys():
+                alias = node_attrs["alias"]
+
             node = LittlefieldNode(
                 self.browser,
                 self.base_address,
-                node_name
+                node_name,
+                alias
             )
 
             graph.add_node(
                 node_name,
-                name = node_name,
+                name = alias,
                 node = node
             )
 
@@ -70,6 +76,7 @@ class LittlefieldDriver:
             if (relationships 
                 and "children" in relationships.keys()
                 and not relationships["children"] is None):
+
                 for child_name in relationships["children"]:
                     graph.add_edge(node_name, child_name)
 
@@ -128,13 +135,15 @@ class LittlefieldNode:
         self,
         browser: mechanize.Browser,
         base: str,
-        extension: str
+        extension: str,
+        alias: str
     ):
 
         self.browser = browser
         self.base_address = base
         self.extension = extension
         self.address = f"{base}/{extension}"
+        self.alias = alias
 
     def fetch_data(self) -> pd.DataFrame:
         # Open node's webpage
@@ -142,13 +151,76 @@ class LittlefieldNode:
         response = str(self.browser.response().read())
 
         # Fetch information from main window
+        stats_dict = self.get_page_statistics(response)
+
+        # Get extended node data
+        data_dict = self.scrape_data_pages(response)
+
+        df = pd.DataFrame()
+        for label, series in data_dict.items():
+            if len(df) == 0:
+                df = pd.DataFrame(series, columns=[label])
+            else:
+                df[label] = series
+
+        for label, point in stats_dict.items():
+            adj_label = f"{self.alias.upper()}_{label}"
+            if len(df) == 0:
+                df = pd.DataFrame([point], columns=[adj_label])
+            else:
+                df[adj_label] = point
+
+        return df
+
+    def get_page_statistics(self, mainpage_response):
+
+        # Fetch & clean lines of data
+        lines = mainpage_response.split(r"\n")
+        data_lines = [line for line in lines if "<BR>" in line]
+        data_lines = [re.sub("<.{1,4}>", "", line).strip() for line in data_lines]
+
+        # Remove final button
+        data_lines = data_lines[:-1]
+
+        # Convert numerical observation to float type, and code-ize the
+        # data labels.
+        data = {}
+        for line in data_lines:
+            split_line = line.split(":")
+
+            # If the observation doesn't have two parts, skip it
+            if len(split_line) != 2:
+                continue
+
+            label = split_line[0]
+            point = split_line[1]
+
+            number_matches = re.findall(
+                "([0-9]+\.?[0-9]*|\.[0-9]+)",
+                point
+            )
+
+            # Clean datapoint
+            if len(number_matches) > 0:
+                point = float(number_matches[0])
+            else:
+                point = point.strip()
+
+            # Clean Label
+            label = label.replace(" ", "_").upper()
+            data[label] = point
+
+        return data
+
+
+    def scrape_data_pages(self, mainpage_response):
 
         # Scrape node page for dataset URL extensions
         dataset_extensions = [
             ext
             for ext in re.findall(
                 pattern = r"Plot\?data=[A-Z0-9]+&x=all",
-                string = response
+                string = mainpage_response
             )
         ]
 
@@ -158,8 +230,8 @@ class LittlefieldNode:
             for ext in dataset_extensions
         ]
 
+        series_dict = {}
         # Create & populate 
-        df = pd.DataFrame()
         for i, addr in enumerate(dataset_addresses):
             self.browser.open(addr)
             dataset_resp = str(self.browser.response().read())
@@ -179,12 +251,9 @@ class LittlefieldNode:
             if len(data) > 0:
                 data = data[0][2:-2]
                 series = self.parse_page_table(data, label)
-                if len(df) == 0:
-                    df = series
-                else:
-                    df[label] = series
+                series_dict[label] = series
 
-        return df
+        return series_dict
 
     def parse_page_table(
         self,
